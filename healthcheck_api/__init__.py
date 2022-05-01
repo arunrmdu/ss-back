@@ -5,5 +5,7 @@ from .HealthAPI import HealthCheck
 
 restServerInstance = Api(app)
 
-restServerInstance.add_resource(HealthCheck,"/api/v1.0/healthCheck")
+restServerInstance.add_resource(HealthCheck,"/healthCheck")
 # restServerInstance.add_resource(HealthCheck,"/")
+
+# restServerInstance.init_app(app)

@@ -4,10 +4,12 @@ Flask==1.0.2
 Flask-RESTful==0.3.6
 itsdangerous==0.24
 Jinja2==2.10
-MarkupSafe
+markupsafe==2.0.1
 pytz
 six
 Werkzeug==0.14.1
 gunicorn
 pandas
 flask_cors
+pymongo
+configobj

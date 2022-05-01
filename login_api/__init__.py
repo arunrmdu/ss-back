@@ -10,7 +10,7 @@ restServerInstance = Api(app)
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-restServerInstance.add_resource(authticateUser,"/api/v1.0/auth")
+restServerInstance.add_resource(authticateUser,"/auth")
 restServerInstance.add_resource(registerUser,"/api/v1.0/registerUser")
 restServerInstance.add_resource(verifyUser,"/api/v1.0/verifyUser")
 restServerInstance.add_resource(getusers,"/api/v1.0/getusers")
