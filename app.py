@@ -15,9 +15,9 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 if __name__ == '__main__':
     print("started server")
     logger.debug("Starting Flask Server")
-    from api import *
     from healthcheck_api import *
     from login_api  import *
     from category import *
+    from inventory import *
     # app.run()
     app.run(host="0.0.0.0",port=config['host_service']['port'],debug=True)
