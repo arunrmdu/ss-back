@@ -23,7 +23,6 @@ class MongoAPI:
         field=self.data['field'] if "field" in self.data else {}
         documents = self.collection.find(filter,field)
         output = [{item: str(x[item]) for item in x } for x in documents]
-
         return output    
 
 

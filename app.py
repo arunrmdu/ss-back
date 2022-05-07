@@ -8,9 +8,19 @@ from config import config
 
 app = Flask(__name__)
 
+CORS_ALLOW_ORIGIN="*,*"
+CORS_EXPOSE_HEADERS="*,*"
+CORS_ALLOW_HEADERS="content-type,*"
+cors = CORS(app, resources={r"*": {"origins": "*"}})
 
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.after_request
+
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept,Accept-Encoding,Host')
+  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+  return response
 
 if __name__ == '__main__':
     print("started server")

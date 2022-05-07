@@ -33,6 +33,15 @@ class getCategory(Resource):
         response=obj1.read()
         return response,200
 
+class getAllCategory(Resource):
+    def get(self):
+        data={"filter":{"active":"Y"},"field":{"_id":1,"cat":1,"supp":1,"p_cat":1}}
+        data['database']="portal"
+        data['collection']="category"
+        obj1 = MongoAPI(data)
+        response=obj1.read()
+        return response,200       
+
 class getSubCategoryById(Resource):
     def get(self,cat_id):
         data={"filter":{"active":"Y","p_cat":cat_id},"field":{"cat":1}}
