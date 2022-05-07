@@ -17,7 +17,7 @@ cors = CORS(app, resources={r"*": {"origins": "*"}})
 @app.after_request
 
 def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', '*')
+#   response.headers.add('Access-Control-Allow-Origin', '*')
   response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept,Accept-Encoding,Host')
   response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
   return response
@@ -29,5 +29,6 @@ if __name__ == '__main__':
     from login_api  import *
     from category import *
     from inventory import *
+    from user_api import *
     # app.run()
     app.run(host="0.0.0.0",port=config['host_service']['port'],debug=True)
