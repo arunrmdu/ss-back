@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS_ALLOW_ORIGIN="*,*"
 CORS_EXPOSE_HEADERS="*,*"
 CORS_ALLOW_HEADERS="content-type,*"
-cors = CORS(app, resources={r"*": {"origins": "*"}})
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 
 @app.after_request
