@@ -15,3 +15,23 @@ cart_schema = {
     },
     'required': ['p_id', 'u_id','qty']
 }
+
+
+delete_schema={
+    'type': 'object',
+    'properties': {
+       
+       "c_id":{'type': 'string'},
+    },
+    'required': ['c_id']
+}
+
+update_schema={
+    'type': 'object',
+    'properties': {
+       
+       "c_id":{'type': 'string'},
+       "qty":{'type': 'string'},
+    },
+    'required': ['c_id','qty']
+}

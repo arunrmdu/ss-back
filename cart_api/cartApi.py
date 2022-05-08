@@ -8,7 +8,7 @@ from pymongo import MongoClient
 from bson import json_util, ObjectId
 from config import config
 from flask_expects_json import expects_json
-from .schema import cart_schema
+from .schema import cart_schema,delete_schema,update_schema
 
 
 
@@ -42,8 +42,19 @@ class MongoAPI:
         output = {'Status': 'Added to Cart',
                   'Document_ID': id}
         return json.loads(json_util.dumps(output))
+    def update(self):
+       
+        filt = self.data['Filter']
+        updated_data = {"$set": self.data['DataToBeUpdated']}
+        response = self.collection.update_one(filt, updated_data)
+        output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
+        return output
 
-
+    def delete(self):
+        filt = self.data['Filter']
+        response = self.collection.delete_one(filt)
+        output = {'Status': 'Successfully Deleted' if response.deleted_count > 0 else "Document not found."}
+        return output
 
 
 class getUserCart(Resource):
@@ -60,4 +71,22 @@ class insertUserCart(Resource):
         post_data = request.get_json()
         data={'Document':post_data}
         response=MongoAPI(data).write(data)
+        return response,200
+
+class deleteUserCart(Resource):
+    @expects_json(delete_schema, ignore_for=['GET'])
+    def get(self,c_id):
+        data={'Filter':{"_id":ObjectId(str(c_id))}}
+        response=MongoAPI(data).delete()
+        return response,200
+
+class updateCartQty(Resource):
+    @expects_json(update_schema, ignore_for=['GET'])
+    def post(self):
+        post_data = request.get_json()
+        data={'Filter':{"_id":ObjectId(str(post_data["c_id"]))},"DataToBeUpdated":{"qty":post_data["qty"]}}
+        if int(post_data['qty']) > 0:
+            response=MongoAPI(data).update()
+        else:
+            response=MongoAPI(data).delete()
         return response,200
