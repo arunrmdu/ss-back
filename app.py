@@ -1,5 +1,7 @@
 from flask import Flask
 import logging as logger
+
+import cart_api
 logger.basicConfig(level="DEBUG")
 from flask_cors import CORS , cross_origin
 from config import config
@@ -30,5 +32,6 @@ if __name__ == '__main__':
     from category import *
     from inventory import *
     from user_api import *
+    from cart_api import *
     # app.run()
     app.run(host="0.0.0.0",port=config['host_service']['port'],debug=True)

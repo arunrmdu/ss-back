@@ -6,6 +6,8 @@ from flask_restful import Resource
 import logging as logger
 from pymongo import MongoClient 
 from config import config
+from bson import ObjectId
+
 
 class MongoAPI:
     def __init__(self, data):
@@ -22,7 +24,18 @@ class MongoAPI:
         filter=self.data['filter'] if "filter" in self.data else {}
         field=self.data['field'] if "field" in self.data else {}
         documents = self.collection.find(filter,field)
-        output = [{item: str(x[item]) for item in x } for x in documents]
+        # output = []
+        # output = [{item: str(x[item]) for item in x } for x in documents]
+        output = [{item: str(x[item]) if item !='var' else x[item] for item in x } for x in documents]
+        # for doc in documents:
+        #     schema={}
+        #     for item in doc:
+        #         if item != 'var':
+        #             schema[item]=str(doc[item])
+        #         else:
+        #             schema[item]=doc[item]
+
+        #     output.append(schema)
         return output    
 
 
@@ -80,4 +93,11 @@ class getProductByParentCatID(Resource):
         return response,200
 
 
-
+class getProductById(Resource):
+    def get(self,p_id):
+        data={"filter":{"active":"Y","_id":ObjectId(str(p_id))}}
+        data['database']="portal"
+        data['collection']="inventory"
+        obj1 = MongoAPI(data)
+        response=obj1.read()
+        return response,200
