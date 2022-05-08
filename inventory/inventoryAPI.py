@@ -101,3 +101,28 @@ class getProductById(Resource):
         obj1 = MongoAPI(data)
         response=obj1.read()
         return response,200
+def removeduplicate(it):
+    seen = []
+    for x in it:
+        t = tuple(x.items())
+        if t not in seen:
+            yield x
+            seen.append(t)
+
+class searchProduct(Resource):
+    def get(self,term):
+        data={"filter":{'$text': { '$search': str(term)}}}
+        data['database']="portal"
+        data['collection']="inventory"
+        output= MongoAPI(data).read()
+        data={"filter":{"active":"Y","cat":{"$regex": str(term), "$options": "i"}},"field":{"_id":1},"database":"portal","collection":"category"}
+        
+        response,c_ids=[],[]
+        for x in  MongoAPI(data).read():
+            c_ids.append(str(x['_id']))
+        data={"filter":{"active":"Y","cat_id":{'$in':c_ids}},"database":"portal","collection":"inventory"}
+        for items in MongoAPI(data).read():
+            output.append(items)
+        response=[item for item in removeduplicate(output)]
+        return response,200
+# {"name": {"$regex": "string", "$options": "i"}}
