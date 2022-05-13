@@ -73,7 +73,7 @@ class insertUserCart(Resource):
     @expects_json(cart_schema, ignore_for=['GET'])
     def post(self):
         post_data = request.get_json()
-        post_data['qty'] ="1"
+        post_data['qty'] =1
         post_data['active'] ="Y"
         data={'Document':post_data}
         MongoAPI(data).write(data)
@@ -108,8 +108,8 @@ class updateCartQty(Resource):
             else:
                 data["DataToBeUpdated"]={"qty":-1}
                 MongoAPI(data).increment()
-        data={'filter':{"_id":ObjectId(str(post_data["c_id"]))}}
-        response=MongoAPI(data).read()    
+        data={'filter':{"u_id":post_data["u_id"]}}
+        response=MongoAPI(data).read()
         return response,200
 
 class addtoWishList(Resource):
