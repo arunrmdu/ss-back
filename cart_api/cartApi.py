@@ -43,24 +43,28 @@ class MongoAPI:
                   'Document_ID': id}
         return json.loads(json_util.dumps(output))
     def update(self):
-       
-        filt = self.data['Filter']
+        filt = self.data['filter']
         updated_data = {"$set": self.data['DataToBeUpdated']}
         response = self.collection.update_one(filt, updated_data)
         output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
         return output
 
     def delete(self):
-        filt = self.data['Filter']
+        filt = self.data['filter']
         response = self.collection.delete_one(filt)
         output = {'Status': 'Successfully Deleted' if response.deleted_count > 0 else "Document not found."}
         return output
+    
+    def increment(self):
+        filt = self.data['filter']
+        update_data={"$inc":self.data['DataToBeUpdated']}
+        response = self.collection.update_one(filt, update_data)
+        return response
 
 
 class getUserCart(Resource):
     def get(self,u_id):
-        print(u_id)
-        data={"filter":{"u_id":str(u_id)}}
+        data={"filter":{"u_id":str(u_id),"active":"Y"}}
         obj=MongoAPI(data)
         response=obj.read()
         return response,200
@@ -69,24 +73,76 @@ class insertUserCart(Resource):
     @expects_json(cart_schema, ignore_for=['GET'])
     def post(self):
         post_data = request.get_json()
+        post_data['qty'] ="1"
+        post_data['active'] ="Y"
         data={'Document':post_data}
-        response=MongoAPI(data).write(data)
+        MongoAPI(data).write(data)
+        data={"filter":{"u_id":str(post_data['u_id'])}}
+        obj=MongoAPI(data)
+        response=obj.read()
         return response,200
 
 class deleteUserCart(Resource):
-    @expects_json(delete_schema, ignore_for=['GET'])
-    def get(self,c_id):
-        data={'Filter':{"_id":ObjectId(str(c_id))}}
-        response=MongoAPI(data).delete()
+    @expects_json(cart_schema, ignore_for=['GET'])
+    def post(self):
+        post_data = request.get_json()
+        data={'filter':{"_id":ObjectId(str(post_data["_id"]))}}
+        MongoAPI(data).delete()
+        data={"filter":{"u_id":str(post_data["u_id"])}}
+        obj=MongoAPI(data)
+        response=obj.read()
         return response,200
 
 class updateCartQty(Resource):
     @expects_json(update_schema, ignore_for=['GET'])
     def post(self):
         post_data = request.get_json()
-        data={'Filter':{"_id":ObjectId(str(post_data["c_id"]))},"DataToBeUpdated":{"qty":post_data["qty"]}}
-        if int(post_data['qty']) > 0:
-            response=MongoAPI(data).update()
+        data={'filter':{"_id":ObjectId(str(post_data["c_id"]))}}
+        if "+" in str(post_data['qty']):
+            data["DataToBeUpdated"]={"qty":1}
+            MongoAPI(data).increment()
         else:
-            response=MongoAPI(data).delete()
+            response=MongoAPI(data).find_one()
+            if int(response['qty']) <= 1:
+                MongoAPI(data).delete() 
+            else:
+                data["DataToBeUpdated"]={"qty":-1}
+                MongoAPI(data).increment()
+        data={'filter':{"_id":ObjectId(str(post_data["c_id"]))}}
+        response=MongoAPI(data).read()    
         return response,200
+
+class addtoWishList(Resource):
+    def get(self,c_id):
+        cart_id=ObjectId(c_id)
+        data={'filter':{"_id":cart_id},"DataToBeUpdated":{"active":"N"}}
+        response=MongoAPI(data).find_one()
+
+        MongoAPI(data).update()
+        u_id=response['u_id']
+        data={"filter":{"u_id":str(u_id),"active":"Y"}}
+        obj=MongoAPI(data)
+        response=obj.read()
+        return response,200
+
+class getwishList(Resource):
+    def get(self,u_id):
+        data={"filter":{"u_id":str(u_id),"active":"N"}}
+        obj=MongoAPI(data)
+        response=obj.read()
+        return response,200
+
+
+class wishListtoCart(Resource):
+    def get(self,c_id):
+        cart_id=ObjectId(c_id)
+        data={'filter':{"_id":cart_id},"DataToBeUpdated":{"active":"Y"}}
+        response=MongoAPI(data).find_one()
+
+        MongoAPI(data).update()
+        u_id=response['u_id']
+        data={"filter":{"u_id":str(u_id),"active":"Y"}}
+        obj=MongoAPI(data)
+        response=obj.read()
+        return response,200
+
