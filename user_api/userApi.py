@@ -6,6 +6,10 @@ from flask_restful import Resource,request
 import logging as logger
 from pymongo import MongoClient 
 from config import config
+from bson import json_util, ObjectId
+import json
+from flask_expects_json import expects_json
+from .userschema import update_address_schema
 
 class MongoAPI:
     def __init__(self, data):
@@ -30,7 +34,13 @@ class MongoAPI:
         output = self.collection.find_one(filter,field)
         output ['_id']= str(output["_id"])
         return output    
-
+    def update(self):
+        filt = self.data['filter']
+        self.data['DataToBeUpdated']["update_dt"]=datetime.strftime(datetime.now(),"%Y-%m-%d %H:%M:%S")
+        updated_data = {"$set": self.data['DataToBeUpdated']}
+        response = self.collection.update_one(filt, updated_data)
+        output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
+        return output
 
 class authticateUser(Resource):
     def get(self):
@@ -60,3 +70,22 @@ class verifyUser(Resource):
         response=obj1.read()
         return response,200
                  
+class userAddress(Resource):
+    def get(self,uid):
+        uid=ObjectId(uid)
+        data={"filter":{"_id":uid},"field":{"address_alt":1,"_id":0}}
+        obj1 = MongoAPI(data)
+        response=obj1.read()
+        
+        return json.loads(response[0]["address_alt"].strip("'<>() ").replace('\'', '\"')),200
+
+class updateAddress(Resource):
+    @expects_json(update_address_schema, ignore_for=['GET'])
+    def post(self):
+        post_data = request.get_json()
+        data={'filter':{"_id":ObjectId(str(post_data["id"]))}}
+        data["DataToBeUpdated"]={"address_alt":post_data["address"]}
+        MongoAPI(data).update()
+        data={'filter':{"_id":ObjectId(str(post_data["id"]))}}
+        response=MongoAPI(data).read()
+        return response,200

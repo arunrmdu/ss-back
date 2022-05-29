@@ -8,7 +8,7 @@ from pymongo import MongoClient
 from bson import json_util, ObjectId
 from config import config
 from flask_expects_json import expects_json
-from .schema import cart_schema,delete_schema,update_schema
+from .schema import cart_schema,delete_schema,update_schema,insert_schema
 
 
 
@@ -37,6 +37,7 @@ class MongoAPI:
         return output    
     def write(self, data):
         new_document = data['Document']
+        
         response = self.collection.insert_one(new_document)
         id=str(response.inserted_id)
         output = {'Status': 'Added to Cart',
@@ -44,6 +45,7 @@ class MongoAPI:
         return json.loads(json_util.dumps(output))
     def update(self):
         filt = self.data['filter']
+        self.data['DataToBeUpdated']["update_dt"]=datetime.strftime(datetime.now(),"%Y-%m-%d %H:%M:%S")
         updated_data = {"$set": self.data['DataToBeUpdated']}
         response = self.collection.update_one(filt, updated_data)
         output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
@@ -75,7 +77,11 @@ class insertUserCart(Resource):
         post_data = request.get_json()
         post_data['qty'] =1
         post_data['active'] ="Y"
-        data={'Document':post_data}
+        post_data['ins_dt']=str(datetime.strftime(datetime.now(),"%Y-%m-%d %H:%M:%S"))
+        post_data['update_dt']=str(datetime.strftime(datetime.now(),"%Y-%m-%d %H:%M:%S"))
+        schema=insert_schema()
+        print(type(schema.dumps(post_data)))
+        data={'Document':json.loads(schema.dumps(post_data))}
         MongoAPI(data).write(data)
         data={"filter":{"u_id":str(post_data['u_id'])}}
         obj=MongoAPI(data)
@@ -103,7 +109,7 @@ class updateCartQty(Resource):
             MongoAPI(data).increment()
         else:
             response=MongoAPI(data).find_one()
-            if int(response['qty']) <= 1:
+            if int(response['qty']) <= 0:
                 MongoAPI(data).delete() 
             else:
                 data["DataToBeUpdated"]={"qty":-1}

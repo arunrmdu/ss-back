@@ -14,3 +14,4 @@ flask_cors
 pymongo
 configobj
 flask-expects-json
+marshmallow
