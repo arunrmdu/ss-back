@@ -1,6 +1,7 @@
 from calendar import c
 from datetime import datetime, timedelta
 from distutils.command.config import config
+from distutils.command.install_data import install_data
 from turtle import back
 from flask_restful import Resource,request
 import logging as logger
@@ -9,7 +10,8 @@ from config import config
 from bson import json_util, ObjectId
 import json
 from flask_expects_json import expects_json
-from .userschema import update_address_schema
+
+from .userschema import update_address_schema,user_schema,insert_schema
 
 class MongoAPI:
     def __init__(self, data):
@@ -28,6 +30,13 @@ class MongoAPI:
         documents = self.collection.find(filter,field)
         output = [{item: str(x[item]) for item in x } for x in documents]
         return output  
+    def write(self, data):
+        new_document = data['Document']
+        response = self.collection.insert_one(new_document)
+        id=str(response.inserted_id)
+        output = {'Status': 'Registered_successfully',
+                  'Document_ID': id}
+        return json.loads(json_util.dumps(output))
     def find_one(self):
         filter=self.data['filter'] if "filter" in self.data else {}
         field=self.data['field'] if "field" in self.data else {}
@@ -84,8 +93,23 @@ class updateAddress(Resource):
     def post(self):
         post_data = request.get_json()
         data={'filter':{"_id":ObjectId(str(post_data["id"]))}}
-        data["DataToBeUpdated"]={"address_alt":post_data["address"]}
+        data["DataToBeUpdated"]={"address_alt":post_data["address"],"update_ts":str(datetime.strftime(datetime.now(),"%Y-%m-%d"))}
         MongoAPI(data).update()
         data={'filter':{"_id":ObjectId(str(post_data["id"]))}}
+        response=MongoAPI(data).read()
+        return response,200
+
+class registerUser(Resource):
+    @expects_json(user_schema, ignore_for=['GET'])
+    def post(self):
+        address_alt=[]
+        post_data = request.get_json()
+        schema=insert_schema()
+        ins_data=json.loads(schema.dumps(post_data))
+        address_alt.append(str(post_data['address_primary'])+";"+post_data['city']+";"+post_data['state']+";"+post_data['zip'])
+        ins_data['address_alt']=address_alt
+        data={"Document":ins_data}
+        ins_respons=MongoAPI(data).write(data)
+        data={'filter':{"_id":ObjectId(str(ins_respons["Document_ID"]))}}
         response=MongoAPI(data).read()
         return response,200

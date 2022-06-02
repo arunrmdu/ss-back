@@ -89,7 +89,6 @@ class placeOrder(Resource):
         schema=insert_schema()
         ins_data=json.loads(schema.dumps(post_data))
         ins_data['items']=cart_response
-        print(type(schema.dumps(post_data)))
         data={"collection":"orders","Document":ins_data}
         MongoAPI(data).write(data)
         
