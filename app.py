@@ -33,5 +33,6 @@ if __name__ == '__main__':
     from inventory import *
     from user_api import *
     from cart_api import *
+    from orders_api import *
     # app.run()
     app.run(host="0.0.0.0",port=config['host_service']['port'],debug=True)
