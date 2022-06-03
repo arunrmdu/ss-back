@@ -2,6 +2,7 @@ from calendar import c
 from datetime import datetime, timedelta
 from distutils.command.config import config
 from distutils.command.install_data import install_data
+from pydoc import doc
 from turtle import back
 from flask_restful import Resource,request
 import logging as logger
@@ -28,7 +29,10 @@ class MongoAPI:
         filter=self.data['filter'] if "filter" in self.data else {}
         field=self.data['field'] if "field" in self.data else {}
         documents = self.collection.find(filter,field)
-        output = [{item: str(x[item]) for item in x } for x in documents]
+        output = []
+        for x in documents:
+            x["_id"]=str(x["_id"])
+            output.append(x)
         return output  
     def write(self, data):
         new_document = data['Document']
@@ -106,10 +110,13 @@ class registerUser(Resource):
         post_data = request.get_json()
         schema=insert_schema()
         ins_data=json.loads(schema.dumps(post_data))
-        address_alt.append(str(post_data['address_primary'])+";"+post_data['city']+";"+post_data['state']+";"+post_data['zip'])
+        address_alt = post_data.get("address_alt",[])
+        # print(post_data.get("address_alt",[]))
+        # address_alt.append(post_data['address_primary'])
         ins_data['address_alt']=address_alt
         data={"Document":ins_data}
+        print(data)
         ins_respons=MongoAPI(data).write(data)
-        data={'filter':{"_id":ObjectId(str(ins_respons["Document_ID"]))}}
+        data={'filter':{"_id":ObjectId(str(ins_respons["Document_ID"]))},"field":{"password":0}}
         response=MongoAPI(data).read()
         return response,200

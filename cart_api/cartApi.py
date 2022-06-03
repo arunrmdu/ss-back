@@ -109,7 +109,7 @@ class updateCartQty(Resource):
             MongoAPI(data).increment()
         else:
             response=MongoAPI(data).find_one()
-            if int(response['qty']) <= 0:
+            if int(response['qty']) <= 1:
                 MongoAPI(data).delete() 
             else:
                 data["DataToBeUpdated"]={"qty":-1}
